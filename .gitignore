@@ -1,0 +1,10 @@
+*.egg-info
+*.pyc
+build
+.converage
+.tox
+.venv
+AUTHORS
+ChangeLog
+dist
+*.egg
