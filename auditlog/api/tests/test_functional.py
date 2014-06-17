@@ -1,9 +1,7 @@
-from unittest import TestCase
-from webtest import TestApp
-from auditlog.api.tests import FunctionalTest
+from auditlog.api import tests
 
 
-class TestRootController(FunctionalTest):
+class TestRootController(tests.FunctionalTest):
 
     def test_get(self):
         response = self.app.get('/')

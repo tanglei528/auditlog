@@ -1,12 +1,15 @@
 import logging
+from pecan import expose
 
-from pecan import expose, redirect
-from webob.exc import status_map
+from auditlog.api.controllers import v1
 
 
 LOG = logging.getLogger(__name__)
 
+
 class RootController(object):
+
+    v1 = v1.V1Controller()
 
     @expose('json')
     def index(self):

@@ -1,7 +1,7 @@
-from unittest import TestCase
+import unittest
 
 
-class TestUnits(TestCase):
+class TestUnits(unittest.TestCase):
 
     def test_units(self):
         assert 5 * 5 == 25
