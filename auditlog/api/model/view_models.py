@@ -4,7 +4,8 @@ import six
 import wsme
 from wsme import types as wtypes
 
-from auditlog import utils
+from auditlog.openstack.common import strutils
+from auditlog.openstack.common import timeutils
 
 HTTP_METHOD = ["GET", "PUT", "POST", "DELETE", "PATCH"]
 operation_kind = wtypes.Enum(str, 'lt', 'le', 'eq', 'ne', 'ge', 'gt')
@@ -72,9 +73,9 @@ class Query(ViewModel):
     _type_converters = {'integer': int,
                         'float': float,
                         'boolean': functools.partial(
-                            utils.bool_from_string, strict=True),
+                            strutils.bool_from_string, strict=True),
                         'string': six.text_type,
-                        'datetime': utils.parse_isotime}
+                        'datetime': timeutils.parse_isotime}
 
     _op = None  # provide a default
 

@@ -21,7 +21,7 @@ Auditlog uses tox to manage virtualenv for testing and uses unittest as
 the main test framework.
 To run all tests, run:
 
-tox
+tox --develop
 
 To do code style check, run:
 

@@ -21,3 +21,7 @@ class AuditLog(object):
         self.start = start
         self.end = end
         self.content = content
+
+    def as_dict(self):
+        """Convert model to dict."""
+        pass

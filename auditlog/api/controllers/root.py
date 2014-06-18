@@ -1,5 +1,5 @@
 import logging
-from pecan import expose
+import pecan
 
 from auditlog.api.controllers import v1
 
@@ -11,7 +11,7 @@ class RootController(object):
 
     v1 = v1.V1Controller()
 
-    @expose('json')
+    @pecan.expose('json')
     def index(self):
         LOG.info("index()")
         return dict()
