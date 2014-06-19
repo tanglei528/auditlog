@@ -1,3 +1,4 @@
+import pecan
 from pecan import rest
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
@@ -16,13 +17,21 @@ class ResourcesController(rest.RestController):
 class AuditLogsController(rest.RestController):
     """Manages audit logs queries."""
 
-    @wsme_pecan.wsexpose([vm.AuditLog], [vm.Query], int)
-    def get_all(self, q=[], limit=None):
-        pass
+    @wsme_pecan.wsexpose(vm.AuditLogPage,
+                         [vm.Query], int, str)
+    def get_all(self, q=[], limit=-1, marker=None):
+        logs, paginator = pecan.request.storage_conn.get_auditlogs_paginated(
+            q, limit, marker
+        )
+        return vm.AuditLogPage(data=[vm.AuditLog.from_model(l) for l in logs],
+                               paginator=vm.Paginator.from_model(paginator))
 
     @wsme_pecan.wsexpose(vm.AuditLog, wtypes.text)
     def get_one(self, id):
-        pass
+        log = pecan.request.storage_conn.get_auditlog_by_id(id)
+        if log is None:
+            pecan.abort(404)
+        return vm.AuditLog.from_model(log)
 
 
 class V1Controller(object):
