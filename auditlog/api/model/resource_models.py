@@ -55,27 +55,29 @@ class Resource(object):
             "^(/v1/).*?(\/).*?(\/)": {"5.1.3": "Object"}
             }
 
-    def __init__(self, url="", rid="", rname=""):
+    def __init__(self, rid="", rname=""):
         """Create a new audit log.
-        :param url: request url.
         """
-        self.url = url
         self.rid = rid
         self.rname = rname
 
-    def parse_url(self):
-        resource = Resource()
-        for key, value in self.dict.items():
-            resourceDict = re.findall(key, self.url, re.M)
+    @classmethod
+    def parse_url(cls, url):
+        resource = None
+        for key, value in cls.dict.items():
+            resourceDict = re.findall(key, url, re.M)
             if resourceDict:
                 for k, v in value.items():
-                    resource = Resource(rid=k, rname=v)
+                    resource = cls(rid=k, rname=v)
                 break
+        if resource is None:
+            raise
         return resource
 
-    def get_resource_list(self):
+    @classmethod
+    def get_resource_list(cls):
         list = []
-        for _, v in self.dict.items():
+        for _, v in cls.dict.items():
             for key, value in v.items():
                 resource = Resource(rid=key, rname=value)
                 list.append(resource)
