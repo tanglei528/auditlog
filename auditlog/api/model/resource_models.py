@@ -71,7 +71,7 @@ class Resource(object):
                     resource = cls(rid=k, rname=v)
                 break
         if resource is None:
-            raise
+            raise Exception("Don't parse the URL",url)
         return resource
 
     @classmethod
