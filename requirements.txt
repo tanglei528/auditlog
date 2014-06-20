@@ -2,6 +2,8 @@ iso8601>=0.1.9
 oslo.config>=1.2.0
 pbr>=0.6,<1.0
 pecan>=0.4.5
+pymongo
 six>=1.5.2
 stevedore>=0.14
 WSME>=0.6
+
