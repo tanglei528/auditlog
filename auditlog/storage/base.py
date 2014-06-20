@@ -2,6 +2,10 @@ import abc
 import six
 
 
+class InvalidQuery(Exception):
+    pass
+
+
 @six.add_metaclass(abc.ABCMeta)
 class StorageEngine(object):
     """Base class for storage engines."""
@@ -30,9 +34,27 @@ class Connection(object):
 
     @abc.abstractmethod
     def get_auditlog_by_id(self, id):
-        """Query a audit log instance by id."""
+        """Query a audit log instance by id
+        :param id: the audit log id to find.
+        :return: A audit log, or None if not found by id.
+        """
 
     @abc.abstractmethod
-    def get_auditlogs_paginated(self, q, paginator,
-                                order_by=[], order_dir='asc'):
-        """Return a ordered and paginated query result according query."""
+    def get_auditlogs_paginated(self, q, limit=-1, marker=None,
+                                order_by=[]):
+        """Return a ordered and paginated query result according query.
+        :param q: the query filters.
+        :param limit: the max records to return, -1 means not limited.
+        :param marker: the start record id to fetch.
+        :param order_by: a list of {field: direction} to sort by.
+            Direction can be 'DESC', 'ASC'.
+        :return: the tuple ([AuditLog], Paginator)
+        """
+
+    @abc.abstractmethod
+    def validate_query(self, q):
+        """Validate if the queries supported
+        :param q: a list of queries.
+        :return: None
+        :raise: InvalidQuery exception when having invalid query
+        """

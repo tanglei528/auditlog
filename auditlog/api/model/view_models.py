@@ -47,6 +47,9 @@ class AuditLog(ViewModel):
     rid = wtypes.text
     "The :class:`Resource` this audit log was logged for."
 
+    path = wtypes.text
+    "The path of the request."
+
     method = wtypes.Enum(str, *HTTP_METHOD)
     "The method of the request."
 
@@ -61,6 +64,18 @@ class AuditLog(ViewModel):
 
     content = wtypes.text
     "The content of the request."
+
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+
+        fields = ['id', 'user_id', 'tenant_id', 'rid', 'path', 'method',
+                  'status_code', 'begin_at', 'end_at', 'content']
+        for f in fields:
+            if not hasattr(other, f) or getattr(self, f) != getattr(other, f):
+                return False
+
+        return True
 
 
 class Query(ViewModel):
@@ -103,3 +118,52 @@ class Query(ViewModel):
                                         self.op,
                                         self.value,
                                         self.type)
+
+
+class Paginator(ViewModel):
+    """The paginator view model."""
+
+    total = int
+    "Records total count"
+
+    size = int
+    "Records count per page"
+
+    count = int
+    "Total pages"
+
+    current = wtypes.text
+    "the marker of the current page"
+
+    first = wtypes.text
+    "the marker of the first page"
+
+    previous = wtypes.text
+    "the marker of the previous page"
+
+    next = wtypes.text
+    "the marker of the next page"
+
+    last = wtypes.text
+    "the marker of the last page"
+
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+
+        fields = ['total', 'size', 'count', 'current', 'first',
+                  'previous', 'next', 'last']
+        for f in fields:
+            if not hasattr(other, f) or getattr(self, f) != getattr(other, f):
+                return False
+
+        return True
+
+
+class AuditLogPage(ViewModel):
+
+    data = [AuditLog]
+    "The audit log list in current page"
+
+    paginator = Paginator
+    "The paginator"
