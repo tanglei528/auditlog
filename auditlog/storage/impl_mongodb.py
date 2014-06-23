@@ -1,11 +1,13 @@
 import pymongo
 import weakref
 
+from auditlog.openstack.common import log
+from auditlog.openstack.common import network_utils
 from auditlog.storage import base
-from ceilometer.openstack.common import network_utils
 
 from oslo.config import cfg
 
+LOG = log.getLogger(__name__)
 
 
 cfg.CONF.import_opt('auditlog_connection','auditlog.storage',group="database")
@@ -21,9 +23,9 @@ class Connection(base.Connection):
     """MongoDB Connection."""
 
     def __init__(self, conf):
-	
 	self._pool = {}
 	self.url = conf.database.auditlog_connection
+        LOG.debug("Database connection: %s", self.url)
 	self.conn = self.connect(self.url)
 	connection_options = pymongo.uri_parser.parse_uri(self.url)
 	self.db = getattr(self.conn, connection_options['database'])
