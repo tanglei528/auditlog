@@ -3,6 +3,7 @@ from pecan import rest
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from auditlog.api.model import models as m
 from auditlog.api.model import view_models as vm
 
 
@@ -11,7 +12,8 @@ class ResourcesController(rest.RestController):
 
     @wsme_pecan.wsexpose([vm.Resource])
     def get_all(self):
-        pass
+        return [vm.Resource.from_model(r)
+                for r in m.Resource.get_resource_list()]
 
 
 class AuditLogsController(rest.RestController):

@@ -174,3 +174,18 @@ class TestAuditLogController(tests.MoxFunctionalTest):
         self.assertEqual('application/json', res.content_type)
         self.assertEqual('The resource could not be found.',
                          res.json['faultstring'])
+
+
+class TestResourcesController(tests.FunctionalTest):
+    def setUp(self):
+        super(TestResourcesController, self).setUp()
+        self.url = '/v1/resources'
+
+    def test_get_all_success(self):
+        res = self.app.get(self.url)
+        self.assertEqual(200, res.status_int)
+        self.assertEqual('application/json', res.content_type)
+        self.assertEqual(len(m.Resource.dict), len(res.json))
+        for each in res.json:
+            self.assertTrue(each['rid'] is not None)
+            self.assertTrue(each['name'] is not None)
