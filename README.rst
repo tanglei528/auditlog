@@ -13,6 +13,16 @@ Run the command to prepare virtualenv:
 
 python tools/install_venv.py
 
+Copy etc/auditlog/auditlog.conf into /etc/auditlog/, and change owner to you.
+
+Edit auditlog.conf according to your environment, such as auditlog_connection, auth_host etc.
+
+Run this command to start api server.
+
+source .venv/bin/activate
+python tools/run_server.py
+
+Then your can access api through http://localhost:8800/v1/
 
 Run tests
 ============
@@ -35,3 +45,6 @@ Insert this line into the location you want to break:
 import pdb; pdb.set_trace()
 
 Run all tests, then the programe will break into pdb debugger environment.
+
+CAUTION:
+DON'T LEAVE ANY DEBUG LINE IN THE CODE, IT WILL CAUSE RUNTIME ERROR.

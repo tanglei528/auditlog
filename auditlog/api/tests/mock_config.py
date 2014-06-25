@@ -20,7 +20,8 @@ app = {
     },
     'hooks': [
         tests.DBHOOK
-    ]
+    ],
+    'enable_acl': False
 }
 
 # Custom Configurations must be in Python dictionary format::

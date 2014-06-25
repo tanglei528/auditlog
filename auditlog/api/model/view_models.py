@@ -119,6 +119,16 @@ class Query(ViewModel):
                                         self.value,
                                         self.type)
 
+    def __eq__(self, other):
+        if id(self) == id(other):
+            return True
+        if type(self) != type(other):
+            return False
+        if (self.field == other.field and self.op == other.op and
+                self.value == other.value and self.type == other.type):
+            return True
+        return False
+
 
 class Paginator(ViewModel):
     """The paginator view model."""
@@ -161,6 +171,7 @@ class Paginator(ViewModel):
 
 
 class AuditLogPage(ViewModel):
+    """The paginated audit log result class."""
 
     data = [AuditLog]
     "The audit log list in current page"
