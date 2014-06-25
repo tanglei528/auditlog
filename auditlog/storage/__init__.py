@@ -9,7 +9,7 @@ LOG = logging.getLogger(__name__)
 STORAGE_ENGINE_NAMESPACE = 'auditlog.storage'
 
 database_opts = [
-    cfg.StrOpt('connection',
+    cfg.StrOpt('auditlog_connection',
                default='mongodb://localhost:27017/auditlog',
                help='The SQLAlchemy connection string used to connect to the '
                     'database',
@@ -22,7 +22,7 @@ CONF.register_opts(database_opts, group="database")
 
 def get_engine(conf):
     """Return the database engine according to configuration."""
-    engine_name = urlparse.urlparse(conf.database.connection).scheme
+    engine_name = urlparse.urlparse(conf.database.auditlog_connection).scheme
     LOG.debug(_('looking for %(name)r driver in %(namespace)r') % (
               {'name': engine_name,
                'namespace': STORAGE_ENGINE_NAMESPACE}))

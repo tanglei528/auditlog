@@ -23,7 +23,7 @@ import unicodedata
 
 import six
 
-from auditlog.openstack.common.gettextutils import _
+from auditlog.openstack.common.gettextutils import _  # noqa
 
 
 # Used for looking up extensions of text
