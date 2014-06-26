@@ -260,3 +260,35 @@ class TestAuditLogsControllerWithACL(tests.FunctionalTest):
                            expect_errors=True)
         self.assertEqual(401, res.status_int)
         self.assertEqual('application/json', res.content_type)
+
+    def test_get_one_with_invalid_tenant_id_return_401(self):
+        expect_creds = '1', 'fake_tenant_id'
+        self.useFixture(
+            oslo_mock.Patch('auditlog.api.acl.get_limited_to',
+                            return_value=expect_creds))
+
+        log = test_data.one
+        self.storage_conn.get_auditlog_by_id(log.id).AndReturn(log)
+        self.conn_mock.ReplayAll()
+
+        res = self.app.get(self.url + '/' + log.id, expect_errors=True)
+        self.assertEqual(401, res.status_int)
+        self.assertEqual('application/json', res.content_type)
+        self.assertEqual(u'Not Authorized to access project fake_tenant_id',
+                         res.json['faultstring'])
+
+    def test_get_one_with_invalid_user_id_return_401(self):
+        expect_creds = 'fake_user_id', '1'
+        self.useFixture(
+            oslo_mock.Patch('auditlog.api.acl.get_limited_to',
+                            return_value=expect_creds))
+
+        log = test_data.one
+        self.storage_conn.get_auditlog_by_id(log.id).AndReturn(log)
+        self.conn_mock.ReplayAll()
+
+        res = self.app.get(self.url + '/' + log.id, expect_errors=True)
+        self.assertEqual(401, res.status_int)
+        self.assertEqual('application/json', res.content_type)
+        self.assertEqual(u'Not Authorized to access for user fake_user_id',
+                         res.json['faultstring'])
