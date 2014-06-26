@@ -13,7 +13,7 @@ database_opts = [
                default='mongodb://localhost:27017/auditlog',
                help='The SQLAlchemy connection string used to connect to the '
                     'database',
-               secret=True)
+               secret=False)
 ]
 
 CONF = cfg.CONF

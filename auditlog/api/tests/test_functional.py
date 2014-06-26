@@ -70,9 +70,9 @@ class TestAuditLogsController(tests.FunctionalTest):
     def test_get_all_with_paginated_success(self):
         """should return one page auditlogs and paginator."""
         all = test_data.all
-        mp = m.Paginator(size=1, marker=all[0].id, total=len(all),
-                         count=len(all), first=all[0].id, next=all[1].id,
-                         last=all[-1].id)
+        mp = m.Paginator(size=1, marker=all[0]._id, total=len(all),
+                         count=len(all), first=all[0]._id, next=all[1]._id,
+                         last=all[-1]._id)
         result = (all[:1], mp)
         self.storage_conn.get_auditlogs_paginated([], 1, None)\
             .AndReturn(result)
@@ -87,15 +87,15 @@ class TestAuditLogsController(tests.FunctionalTest):
     def test_get_all_with_mark_paginated_success(self):
         """should return one page auditlogs from marker and paginator."""
         all = test_data.all
-        mp = m.Paginator(size=1, marker=all[1].id, total=len(all),
-                         count=len(all), first=all[0].id, previous=all[0].id,
-                         last=all[-1].id)
+        mp = m.Paginator(size=1, marker=all[1]._id, total=len(all),
+                         count=len(all), first=all[0]._id,
+                         previous=all[0]._id, last=all[-1]._id)
         result = (all[1:1], mp)
-        self.storage_conn.get_auditlogs_paginated([], 1, all[1].id)\
+        self.storage_conn.get_auditlogs_paginated([], 1, all[1]._id)\
             .AndReturn(result)
         self.conn_mock.ReplayAll()
 
-        res = self.app.get(self.url, {'limit': 1, 'marker': all[1].id})
+        res = self.app.get(self.url, {'limit': 1, 'marker': all[1]._id})
         self.assertEqual(200, res.status_int)
         self.assertEqual('application/json', res.content_type)
         self._verify_audit_logs(all[1:1], res.json['data'])
@@ -161,10 +161,10 @@ class TestAuditLogsController(tests.FunctionalTest):
     def test_get_one(self):
         """should return the audit log in json with the given id."""
         log = test_data.one
-        self.storage_conn.get_auditlog_by_id(log.id).AndReturn(log)
+        self.storage_conn.get_auditlog_by_id(log._id).AndReturn(log)
         self.conn_mock.ReplayAll()
 
-        res = self.app.get(self.url + '/' + log.id)
+        res = self.app.get(self.url + '/' + log._id)
         self.assertEqual(200, res.status_int)
         self.assertEqual('application/json', res.content_type)
         self._verify_audit_logs([log], [res.json])
@@ -268,10 +268,10 @@ class TestAuditLogsControllerWithACL(tests.FunctionalTest):
                             return_value=expect_creds))
 
         log = test_data.one
-        self.storage_conn.get_auditlog_by_id(log.id).AndReturn(log)
+        self.storage_conn.get_auditlog_by_id(log._id).AndReturn(log)
         self.conn_mock.ReplayAll()
 
-        res = self.app.get(self.url + '/' + log.id, expect_errors=True)
+        res = self.app.get(self.url + '/' + log._id, expect_errors=True)
         self.assertEqual(401, res.status_int)
         self.assertEqual('application/json', res.content_type)
         self.assertEqual(u'Not Authorized to access project fake_tenant_id',
@@ -284,10 +284,10 @@ class TestAuditLogsControllerWithACL(tests.FunctionalTest):
                             return_value=expect_creds))
 
         log = test_data.one
-        self.storage_conn.get_auditlog_by_id(log.id).AndReturn(log)
+        self.storage_conn.get_auditlog_by_id(log._id).AndReturn(log)
         self.conn_mock.ReplayAll()
 
-        res = self.app.get(self.url + '/' + log.id, expect_errors=True)
+        res = self.app.get(self.url + '/' + log._id, expect_errors=True)
         self.assertEqual(401, res.status_int)
         self.assertEqual('application/json', res.content_type)
         self.assertEqual(u'Not Authorized to access for user fake_user_id',
