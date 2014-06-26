@@ -41,7 +41,7 @@ from oslo.config import cfg
 import six
 from six import moves
 
-from auditlog.openstack.common.gettextutils import _
+from auditlog.openstack.common.gettextutils import _  # noqa
 from auditlog.openstack.common import importutils
 from auditlog.openstack.common import jsonutils
 from auditlog.openstack.common import local

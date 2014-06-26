@@ -1,13 +1,10 @@
-import logging
 import uuid
 
 from nova import wsgi as base
 from oslo.config import cfg
-#from nova.openstack.common import log as logging
 
-#from auditlog.openstack.common.middleware import base
 from auditlog.api.model import models
-from auditlog.api.model import resource_models as vm
+from auditlog.openstack.common import log as logging
 from auditlog.openstack.common import timeutils
 from auditlog.storage import impl_mongodb
 
@@ -34,7 +31,7 @@ class AuditMiddleware(base.Middleware):
             tenant_id = req.headers.get('X-Tenant-Id', 'unknown')
             path = req.path
             try:
-                rid = vm.Resource.parse_url(path).rid
+                rid = models.Resource.parse_url(path).rid
             except Exception:
                 rid = None
             method = req.method
