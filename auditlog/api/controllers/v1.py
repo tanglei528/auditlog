@@ -41,8 +41,10 @@ class AuditLogsController(rest.RestController):
         logs, paginator = pecan.request.storage_conn.get_auditlogs_paginated(
             q, limit, marker
         )
+        logs = logs if logs else []
+        rp = vm.Paginator.from_model(paginator) if paginator else None
         return vm.AuditLogPage(data=[vm.AuditLog.from_model(l) for l in logs],
-                               paginator=vm.Paginator.from_model(paginator))
+                               paginator=rp)
 
     @wsme_pecan.wsexpose(vm.AuditLog, wtypes.text)
     def get_one(self, id):

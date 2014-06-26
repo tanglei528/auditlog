@@ -40,6 +40,7 @@ def setup_app(config):
                  )]
     if 'hooks' in app_conf.keys():
         app_hooks = app_conf['hooks']
+        LOG.info("Use hooks %s", app_hooks)
         del app_conf['hooks']
 
     app_conf['debug'] = cfg.CONF.debug
