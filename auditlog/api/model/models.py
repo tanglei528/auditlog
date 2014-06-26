@@ -12,11 +12,11 @@ class Model(object):
 class AuditLog(Model):
     """Audit Log model class."""
 
-    fields = ['id', 'user_id', 'tenant_id', 'rid', 'path',
+    fields = ['_id', 'user_id', 'tenant_id', 'rid', 'path',
               'method', 'status_code', 'begin_at', 'end_at', 'content']
 
-    def __init__(self, user_id, tenant_id, rid, path, method, status_code,
-                 begin_at, end_at, content=None):
+    def __init__(self, _id, user_id, tenant_id, rid, path, method,
+                 status_code, begin_at, end_at, content=None):
         """Create a new audit log.
         :param user_id: User id who sends the request.
         :param tenant_id: Tenant id of the operated resource.
@@ -28,7 +28,7 @@ class AuditLog(Model):
         :param end: The response sent timestamp.
         :param content: optional, the request body.
         """
-        self.id = None
+        self._id = _id
         self.user_id = user_id
         self.tenant_id = tenant_id
         self.rid = rid
@@ -62,7 +62,7 @@ class Paginator(Model):
         "The previous page marker"
         self.next = next
         "The next page marker"
-        self.last = None
+        self.last = last
         "The last page marker"
 
 

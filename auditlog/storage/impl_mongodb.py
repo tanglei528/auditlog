@@ -1,30 +1,24 @@
-from bson.objectid import ObjectId
 import pymongo
+import uuid
 import weakref
 
-from auditlog.api.model import models as mo
-from auditlog.openstack.common import log
-from auditlog.storage import base
 from oslo.config import cfg
 
-LOG = log.getLogger(__name__)
+from auditlog.api.model import models as mo
+from auditlog.storage import base
 
-cfg.CONF.import_opt(
-    'auditlog_connection',
-    'auditlog.storage',
-    group="database")
+cfg.CONF.import_opt('auditlog_connection', 'auditlog.storage',
+                    group="database")
 
 
 class MongoDBStorage(base.StorageEngine):
     """Engine to store data into mongodb."""
-
     def get_connection(self, conf):
         return Connection(conf)
 
 
 class Connection(base.Connection):
     """MongoDB Connection."""
-
     def __init__(self, conf):
         self._pool = {}
         self.url = conf.database.auditlog_connection
@@ -34,9 +28,9 @@ class Connection(base.Connection):
         self.colls = self.db.auditlog
         self.index = 0
         self.auditlog_list = []
+        self.query_constraint_str = ""
 
     def connect(self, url):
-
         connection_options = pymongo.uri_parser.parse_uri(url)
         del connection_options['database']
         del connection_options['username']
@@ -59,7 +53,7 @@ class Connection(base.Connection):
         self.colls.insert(log)
 
     def get_auditlog_by_id(self, id):
-        self.colls.find({"_id": ObjectId(id)})
+        self.colls.find({"_id": id})
 
     def get_auditlogs_paginated(self, q, limit=-1, marker=None,
                                 order_by=[]):
@@ -74,51 +68,66 @@ class Connection(base.Connection):
 
         sort_comm = self._build_sort_instrution(order_by)
         query_cons = self._build_query_constraint(q)
-
-        results = self.colls.find(query_cons).sort(sort_comm)
+        if order_by == []:
+            results = self.colls.find(query_cons)
+        else:
+            results = self.colls.find(query_cons).sort(sort_comm)
         total = results.count()
         size = limit
+        cursor = results.clone()
 
         if total == 0:
-            return None
-        if total > 0:
-            if total <= size:
-                page_count = 1
-                first, previous, next, last = None, None, None, None
-            else:
-                first = results.skip(size - 1)[0].get('_id')
-                last = results.skip(total - 1)[0].get('_id')
-                if total % size == 0:
-                    page_count = total // size
-                else:
-                    page_count = total // size + 1
-                if marker is None:
-                    previous = None
-                    next = results.skip(size * 2 - 1)[0].get('_id')
-                else:
-                    self._get_index_from_marker(results, marker)
-                    idx_pre = self.index - size
-                    idx_next = self.index + size
-                    previous = results.skip(idx_pre)[0].get('_id')
-                    if total < idx_next:
-                        next = results.skip(total - 1)[0].get('_id')
-                    else:
-                        next = results.skip(idx_next)[0].get('_id')
-
-        paginator = mo.Paginator().__init__(limit, marker, total, page_count,
-                                            first, previous, next, last)
+            return ([], None)
         if limit == -1:
             final = results
-        else:
-            if limit != -1:
-                final = results.limit(limit)
-            else:
-                final = None
-        if final is not None:
             auditlogs = self. _convert_results(final)
+            return (auditlogs, None)
         else:
-            auditlogs = None
-        return tuple([auditlogs], paginator)
+            if total > 0:
+                if total <= size:
+                    page_count = 1
+                    first, previous, next, last = None, None, None, None
+                else:
+                    first = str(cursor.skip(size - 1)[0].get('_id'))
+                    last = str(cursor.skip(total - 1)[0].get('_id'))
+                    if total % size == 0:
+                        page_count = total // size
+                    else:
+                        page_count = total // size + 1
+                    if marker is None:
+                        previous = None
+                        next = str(cursor.skip(size - 1)[0].get('_id'))
+                        final = results.limit(limit)
+                        paginator = mo.Paginator(limit, marker, total,
+                                                 page_count, first, previous,
+                                                 next, last)
+                        auditlogs = self. _convert_results(final)
+                        return (auditlogs, paginator)
+                    else:
+                        self._get_index_from_marker(results, marker)
+                        idx_pre = self.index - size - 1
+                        idx_next = self.index + size - 1
+                        if idx_pre > 0:
+                            previous = str(cursor.skip(idx_pre)[0].get('_id'))
+                        else:
+                            previous = marker
+                        if total < idx_next:
+                            next = str(cursor.skip(total - 1)[0].get('_id'))
+                        else:
+                            next = str(cursor.skip(idx_next)[0].get('_id'))
+                        begin_at = self._get_begintime(marker)
+                        res = self.colls.find({"begin_at": {"$gt": begin_at}})
+                        if self.index >= 1:
+                            final = res[self.index: self.index + limit]
+                        else:
+                            final = res[:limit]
+                        auditlogs = []
+                        paginator = mo.Paginator(limit, marker, total,
+                                                 page_count, first, previous,
+                                                 next, last)
+                        if final is not None:
+                            auditlogs = self._convert_results(final)
+                        return (auditlogs, paginator)
 
     def validate_query(self, q):
         pass
@@ -138,23 +147,26 @@ class Connection(base.Connection):
     def _build_query_constraint(self, q=None):
         if q is None:
             return None
-        field = q.field
-        op_list = {'lt': '$lt', 'le': '$le', 'eq': '$eq', 'ne': '$ne',
-                   'ge': '$ge', 'gt': '$gt'}
-        op = op_list.get(q.get_op())
-        value = q.value
-        return {field: {op: value}}
+        for item in q:
+            field = item.field
+            op_list = {'lt': '$lt', 'le': '$le', 'eq': '$eq', 'ne': '$ne',
+                       'ge': '$ge', 'gt': '$gt'}
+            op = op_list.get(item.get_op())
+            value = item.value
+            self.query_constraint_str += {field: {op: value}} + ','
 
     def _get_index_from_marker(self, res, marker):
         for item in res:
             self.index += 1
-            if item["_id"] == marker:
+            if str(item["_id"]) == marker:
                 break
             else:
                 continue
 
     def _convert_results(self, results=None):
+        log_list = []
         for item in results:
+            _id = str(item["_id"])
             user_id = item["user_id"]
             tenant_id = item["tenant_id"]
             rid = item["rid"]
@@ -164,11 +176,12 @@ class Connection(base.Connection):
             begin_at = item["begin_at"]
             end_at = item["end_at"]
             content = item["content"]
-            self.auditlog_list.append(mo.Auditlog().__init__(user_id,
-                                                             tenant_id,
-                                                             rid, path,
-                                                             method,
-                                                             status_code,
-                                                             begin_at, end_at,
-                                                             content))
-        return self.auditlog_list
+            log_list.append(mo.AuditLog(_id, user_id, tenant_id, rid, path,
+                                        method, status_code, begin_at,
+                                        end_at, content))
+        return log_list
+
+    def _get_begintime(self, marker):
+        id = uuid.UUID(marker)
+        begin_at = self.colls.find({"_id": id})[0]["begin_at"]
+        return begin_at

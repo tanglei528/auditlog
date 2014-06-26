@@ -1,19 +1,19 @@
 from auditlog.openstack.common.gettextutils import _  # noqa
-from auditlog.openstack.common import log
+import logging
 from oslo.config import cfg
 import six.moves.urllib.parse as urlparse
 from stevedore import driver
 
-LOG = log.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 STORAGE_ENGINE_NAMESPACE = 'auditlog.storage'
 
 database_opts = [
     cfg.StrOpt('auditlog_connection',
-               default='mongodb://localhost:27017/auditlog',
+               default='mongodb://192.168.0.143:27017/auditlog',
                help='The SQLAlchemy connection string used to connect to the '
                     'database',
-               secret=True)
+               secret=False)
 ]
 
 CONF = cfg.CONF

@@ -42,6 +42,7 @@ import six
 from six import moves
 
 from auditlog.openstack.common.gettextutils import _
+from auditlog.openstack.common import importutils
 from auditlog.openstack.common import jsonutils
 from auditlog.openstack.common import local
 
@@ -514,8 +515,10 @@ def _setup_logging_from_conf(project, version):
         log_root.addHandler(streamlog)
 
     if CONF.publish_errors:
-        # (xg.song) Not support publish error
-        pass
+        handler = importutils.import_object(
+            "ceilometer.openstack.common.log_handler.PublishErrorsHandler",
+            logging.ERROR)
+        log_root.addHandler(handler)
 
     datefmt = CONF.log_date_format
     for handler in log_root.handlers:

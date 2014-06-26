@@ -1,10 +1,9 @@
 import logging
+import uuid
 
-from oslo.config import cfg
-
-#from nova.openstack.common import log as logging
 from nova import wsgi as base
-
+from oslo.config import cfg
+#from nova.openstack.common import log as logging
 
 #from auditlog.openstack.common.middleware import base
 from auditlog.api.model import models
@@ -12,22 +11,25 @@ from auditlog.api.model import resource_models as vm
 from auditlog.openstack.common import timeutils
 from auditlog.storage import impl_mongodb
 
-LOG = logging.getLogger("nova.api.auth")
+LOG = logging.getLogger(__name__)
+cfg.CONF.import_opt('auditlog_connection', 'auditlog.storage',
+                    group="database")
 
 
 class AuditMiddleware(base.Middleware):
     """store POST/PUT/DELETE api request for audit."""
 
-    def __init__(self, application, audit_methods='POST,PUT,DELETE'):
+    def __init__(self, application, audit_methods='POST, PUT, DELETE'):
 
         super(AuditMiddleware, self).__init__(application)
         self._audit_methods = audit_methods.split(",")
-        self.storage = impl_mongodb.MongoDBStorage()
-        self.connection = self.storage.get_connection(cfg.CONF)
+        self.client = impl_mongodb.MongoDBStorage()
+        self.connection = self.client.get_connection(cfg.CONF)
 
     def process_request(self, req):
         _need_audit = req.method in self._audit_methods
         if _need_audit:
+            _id = uuid.uuid4()
             user_id = req.headers.get('X-User-Id', 'unknown')
             tenant_id = req.headers.get('X-Tenant-Id', 'unknown')
             path = req.path
@@ -40,14 +42,13 @@ class AuditMiddleware(base.Middleware):
             begin_at = timeutils.utcnow()
             end_at = None
             content = req.body
-            self._log = models.AuditLog(user_id, tenant_id, rid, path, method,
-                                        status_code, begin_at, end_at,
+            self._log = models.AuditLog(_id, user_id, tenant_id, rid, path,
+                                        method, status_code, begin_at, end_at,
                                         content)
         else:
             self._log = None
 
     def process_response(self, response):
-
         if self._log is not None:
             self._log.status_code = response.status_int
             self._log.end_at = timeutils.utcnow()

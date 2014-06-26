@@ -1,24 +1,29 @@
 from mox import Func
+from mox import In
 
 from auditlog.api.model import models as m
 from auditlog.api.model import view_models as vm
 from auditlog.api import tests
 from auditlog.api.tests import test_data
+from auditlog.openstack.common.fixture import mockpatch as oslo_mock
 from auditlog.openstack.common import timeutils
 
 
 class TestRootController(tests.FunctionalTest):
-
+    """Functional test case for RootController."""
     def test_get(self):
         res = self.app.get('/')
         self.assertTrue(res.status_int == 200)
 
 
-class TestAuditLogController(tests.MoxFunctionalTest):
-
+class TestAuditLogsController(tests.FunctionalTest):
+    """Functional test case for AuditLogsController."""
     def setUp(self):
-        super(TestAuditLogController, self).setUp()
+        super(TestAuditLogsController, self).setUp()
         self.url = '/v1/auditlogs'
+        self.useFixture(
+            oslo_mock.Patch('auditlog.api.acl.get_limited_to',
+                            return_value=(None, None)))
 
     def _verify_audit_logs(self, expects, json):
         self.assertEqual(len(expects), len(json))
@@ -177,6 +182,7 @@ class TestAuditLogController(tests.MoxFunctionalTest):
 
 
 class TestResourcesController(tests.FunctionalTest):
+    """Functional test case for ResourcesController."""
     def setUp(self):
         super(TestResourcesController, self).setUp()
         self.url = '/v1/resources'
@@ -189,3 +195,68 @@ class TestResourcesController(tests.FunctionalTest):
         for each in res.json:
             self.assertTrue(each['rid'] is not None)
             self.assertTrue(each['name'] is not None)
+
+
+class TestAuditLogsControllerWithACL(tests.FunctionalTest):
+    """Functional test case for AuditLogsController with access controll."""
+    def setUp(self):
+        super(TestAuditLogsControllerWithACL, self).setUp()
+        self.url = '/v1/auditlogs'
+
+    def test_get_all_enforce_filter_by_tenant_id(self):
+        expect_creds = 'fake_user_id', 'fake_tenant_id'
+        self.useFixture(
+            oslo_mock.Patch('auditlog.api.acl.get_limited_to',
+                            return_value=expect_creds))
+        tenant_query = vm.Query(field='tenant_id', op='eq',
+                                value=expect_creds[1], type='string')
+        self.storage_conn.get_auditlogs_paginated(In(tenant_query), -1, None)\
+            .AndReturn(([], m.Paginator()))
+        self.conn_mock.ReplayAll()
+
+        res = self.app.get(self.url)
+        self.assertEqual(200, res.status_int)
+        self.assertEqual('application/json', res.content_type)
+
+    def test_get_all_enforce_filter_by_user_id(self):
+        expect_creds = 'fake_user_id', 'fake_tenant_id'
+        self.useFixture(
+            oslo_mock.Patch('auditlog.api.acl.get_limited_to',
+                            return_value=expect_creds))
+        user_query = vm.Query(field='user_id', op='eq',
+                              value=expect_creds[0], type='string')
+        self.storage_conn.get_auditlogs_paginated(In(user_query), -1, None)\
+            .AndReturn(([], m.Paginator()))
+        self.conn_mock.ReplayAll()
+
+        res = self.app.get(self.url)
+        self.assertEqual(200, res.status_int)
+        self.assertEqual('application/json', res.content_type)
+
+    def test_get_all_filter_by_invalid_tenant_id_return_401(self):
+        expect_creds = 'fack_user_id', 'fake_tenant_id'
+        self.useFixture(
+            oslo_mock.Patch('auditlog.api.acl.get_limited_to',
+                            return_value=expect_creds))
+
+        res = self.app.get(self.url, {'q.field': 'tenant_id',
+                                      'q.op': 'eq',
+                                      'q.value': 'invalid_tenant_id',
+                                      'q.type': 'string'},
+                           expect_errors=True)
+        self.assertEqual(401, res.status_int)
+        self.assertEqual('application/json', res.content_type)
+
+    def test_get_all_filter_by_invalid_user_id_return_401(self):
+        expect_creds = 'fack_user_id', 'fake_tenant_id'
+        self.useFixture(
+            oslo_mock.Patch('auditlog.api.acl.get_limited_to',
+                            return_value=expect_creds))
+
+        res = self.app.get(self.url, {'q.field': 'user_id',
+                                      'q.op': 'eq',
+                                      'q.value': 'invalid_user_id',
+                                      'q.type': 'string'},
+                           expect_errors=True)
+        self.assertEqual(401, res.status_int)
+        self.assertEqual('application/json', res.content_type)
