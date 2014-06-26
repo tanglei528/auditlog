@@ -49,6 +49,11 @@ class AuditLogsController(rest.RestController):
         log = pecan.request.storage_conn.get_auditlog_by_id(id)
         if log is None:
             pecan.abort(404)
+        authed_user_id, authed_tenant_id = acl.get_limited_to(pecan.request)
+        if authed_user_id is not None and log.user_id != authed_user_id:
+            raise exceptions.AccessNotAuthorized(authed_user_id)
+        if authed_tenant_id is not None and log.tenant_id != authed_tenant_id:
+            raise exceptions.ProjectNotAuthorized(authed_tenant_id)
         return vm.AuditLog.from_model(log)
 
     def _validate_queries(self, queries, field, value):
