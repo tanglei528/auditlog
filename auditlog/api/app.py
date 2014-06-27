@@ -63,7 +63,7 @@ def setup_app(config):
 def get_server_cls(host):
     """Return an appropriate WSGI server class base on provided host
 
-    :param host: The listen host for the ceilometer API server.
+    :param host: The listen host for the auditlog API server.
     """
     server_cls = simple_server.WSGIServer
     if netaddr.valid_ipv6(host):
