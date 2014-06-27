@@ -42,7 +42,6 @@ import six
 from six import moves
 
 from auditlog.openstack.common.gettextutils import _  # noqa
-from auditlog.openstack.common import importutils
 from auditlog.openstack.common import jsonutils
 from auditlog.openstack.common import local
 
@@ -167,9 +166,6 @@ log_opts = [
                     'requests.packages.urllib3.connectionpool=WARN'
                 ],
                 help='List of logger=LEVEL pairs'),
-    cfg.BoolOpt('publish_errors',
-                default=False,
-                help='Publish error events'),
     cfg.BoolOpt('fatal_deprecations',
                 default=False,
                 help='Make deprecations fatal'),
@@ -513,12 +509,6 @@ def _setup_logging_from_conf(project, version):
         # python2.6 calls the argument strm, in 2.7 it's stream
         streamlog = logging.StreamHandler(sys.stdout)
         log_root.addHandler(streamlog)
-
-    if CONF.publish_errors:
-        handler = importutils.import_object(
-            "ceilometer.openstack.common.log_handler.PublishErrorsHandler",
-            logging.ERROR)
-        log_root.addHandler(handler)
 
     datefmt = CONF.log_date_format
     for handler in log_root.handlers:

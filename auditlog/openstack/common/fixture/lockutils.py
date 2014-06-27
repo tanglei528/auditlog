@@ -15,7 +15,7 @@
 
 import fixtures
 
-from ceilometer.openstack.common import lockutils
+from auditlog.openstack.common import lockutils
 
 
 class LockFixture(fixtures.Fixture):
