@@ -27,7 +27,8 @@ class AuditLogsController(rest.RestController):
     @wsme_pecan.wsexpose(vm.AuditLogPage,
                          [vm.Query], int, str)
     def get_all(self, q=[], limit=-1, marker=None):
-        authed_user_id, authed_tenant_id = acl.get_limited_to(pecan.request)
+        authed_user_id, authed_tenant_id =\
+            acl.get_limited_to(pecan.request.headers)
         if authed_user_id is not None:
             valid, id = self._validate_queries(q, 'user_id', authed_user_id)
             if not valid:
@@ -51,7 +52,8 @@ class AuditLogsController(rest.RestController):
         log = pecan.request.storage_conn.get_auditlog_by_id(id)
         if log is None:
             pecan.abort(404)
-        authed_user_id, authed_tenant_id = acl.get_limited_to(pecan.request)
+        authed_user_id, authed_tenant_id =\
+            acl.get_limited_to(pecan.request.headers)
         if authed_user_id is not None and log.user_id != authed_user_id:
             raise exceptions.AccessNotAuthorized(authed_user_id)
         if authed_tenant_id is not None and log.tenant_id != authed_tenant_id:
