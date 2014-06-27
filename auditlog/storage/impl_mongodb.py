@@ -53,7 +53,8 @@ class Connection(base.Connection):
         self.colls.insert(log)
 
     def get_auditlog_by_id(self, id):
-        self.colls.find({"_id": id})
+        result = self.colls.find({"id": uuid.UUID(id)})
+        return self._convert_results(result)[0]
 
     def get_auditlogs_paginated(self, q, limit=-1, marker=None,
                                 order_by=[]):
@@ -88,15 +89,15 @@ class Connection(base.Connection):
                     page_count = 1
                     first, previous, next, last = None, None, None, None
                 else:
-                    first = str(cursor.skip(size - 1)[0].get('_id'))
-                    last = str(cursor.skip(total - 1)[0].get('_id'))
+                    first = str(cursor.skip(size - 1)[0].get('id'))
+                    last = str(cursor.skip(total - 1)[0].get('id'))
                     if total % size == 0:
                         page_count = total // size
                     else:
                         page_count = total // size + 1
                     if marker is None:
                         previous = None
-                        next = str(cursor.skip(size - 1)[0].get('_id'))
+                        next = str(cursor.skip(size - 1)[0].get('id'))
                         final = results.limit(limit)
                         paginator = mo.Paginator(limit, marker, total,
                                                  page_count, first, previous,
@@ -108,13 +109,13 @@ class Connection(base.Connection):
                         idx_pre = self.index - size - 1
                         idx_next = self.index + size - 1
                         if idx_pre > 0:
-                            previous = str(cursor.skip(idx_pre)[0].get('_id'))
+                            previous = str(cursor.skip(idx_pre)[0].get('id'))
                         else:
                             previous = marker
                         if total < idx_next:
-                            next = str(cursor.skip(total - 1)[0].get('_id'))
+                            next = str(cursor.skip(total - 1)[0].get('id'))
                         else:
-                            next = str(cursor.skip(idx_next)[0].get('_id'))
+                            next = str(cursor.skip(idx_next)[0].get('id'))
                         begin_at = self._get_begintime(marker)
                         res = self.colls.find({"begin_at": {"$gt": begin_at}})
                         if self.index >= 1:
@@ -158,7 +159,7 @@ class Connection(base.Connection):
     def _get_index_from_marker(self, res, marker):
         for item in res:
             self.index += 1
-            if str(item["_id"]) == marker:
+            if str(item["id"]) == marker:
                 break
             else:
                 continue
@@ -166,7 +167,7 @@ class Connection(base.Connection):
     def _convert_results(self, results=None):
         log_list = []
         for item in results:
-            _id = str(item["_id"])
+            id = str(item["id"])
             user_id = item["user_id"]
             tenant_id = item["tenant_id"]
             rid = item["rid"]
@@ -176,12 +177,12 @@ class Connection(base.Connection):
             begin_at = item["begin_at"]
             end_at = item["end_at"]
             content = item["content"]
-            log_list.append(mo.AuditLog(_id, user_id, tenant_id, rid, path,
+            log_list.append(mo.AuditLog(id, user_id, tenant_id, rid, path,
                                         method, status_code, begin_at,
                                         end_at, content))
         return log_list
 
     def _get_begintime(self, marker):
         id = uuid.UUID(marker)
-        begin_at = self.colls.find({"_id": id})[0]["begin_at"]
+        begin_at = self.colls.find({"id": id})[0]["begin_at"]
         return begin_at

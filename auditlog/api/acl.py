@@ -61,9 +61,10 @@ def get_limited_to(headers):
         _ENFORCER = policy.Enforcer()
     if not _ENFORCER.enforce('context_is_admin',
                              {},
-                             {'roles': headers.get('X-Roles', "").split(",")}):
-        return (headers.get('X-User-Id', 'Unkown'),
-                headers.get('X-Project-Id', 'Unknown'))
+                             {'roles': headers.headers.get('X-Roles',
+                                                           "").split(",")}):
+        return (headers.headers.get('X-User-Id', 'Unkown'),
+                headers.headers.get('X-Project-Id', 'Unknown'))
     return None, None
 
 
