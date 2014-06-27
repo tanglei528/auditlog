@@ -72,19 +72,24 @@ class FunctionalTest(test.BaseTestCase):
     def setUp(self):
         super(FunctionalTest, self).setUp()
         self.CONF = self.useFixture(config.Config()).conf
+        self.CONF([], 'auditlog')
+        self.conn_mock = mox.Mox()
+        self.storage_conn = self.conn_mock.CreateMock(base.Connection)
+        DBHOOK.storage_connection = self.storage_conn
+        self.useFixture(oslo_mock.Patch('auditlog.storage.get_connection',
+                                        return_value=self.storage_conn))
+
         self.app = testing.load_test_app(os.path.join(
             os.path.dirname(__file__),
             self.CONFIG_FILE,
         ))
         self.app.debug = True
-        self.CONF([], 'auditlog')
         self.CONF.set_override('policy_file',
                                self.get_path('etc/auditlog/policy.json'))
-        self.conn_mock = mox.Mox()
-        self.storage_conn = self.conn_mock.CreateMock(base.Connection)
-        DBHOOK.storage_connection = self.storage_conn
 
     def tearDown(self):
         self.conn_mock.VerifyAll()
+        self.storage_conn = None
+        DBHOOK.storage_conn = None
         pecan.set_config({}, overwrite=True)
         super(FunctionalTest, self).tearDown()
