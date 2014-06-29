@@ -12,10 +12,10 @@ class Model(object):
 class AuditLog(Model):
     """Audit Log model class."""
 
-    fields = ['_id', 'user_id', 'tenant_id', 'rid', 'path',
+    fields = ['id', 'user_id', 'tenant_id', 'rid', 'path',
               'method', 'status_code', 'begin_at', 'end_at', 'content']
 
-    def __init__(self, _id, user_id, tenant_id, rid, path, method,
+    def __init__(self, id, user_id, tenant_id, rid, path, method,
                  status_code, begin_at, end_at, content=None):
         """Create a new audit log.
         :param user_id: User id who sends the request.
@@ -28,7 +28,7 @@ class AuditLog(Model):
         :param end: The response sent timestamp.
         :param content: optional, the request body.
         """
-        self._id = _id
+        self.id = id
         self.user_id = user_id
         self.tenant_id = tenant_id
         self.rid = rid
