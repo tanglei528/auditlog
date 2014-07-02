@@ -1,6 +1,6 @@
 import operator
 import unittest
-from auditlog.api.model import resource_models as resource
+
 from auditlog.api.model import models as resource
 
 
