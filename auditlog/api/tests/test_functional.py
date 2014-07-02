@@ -33,10 +33,12 @@ class TestAuditLogsController(tests.FunctionalTest):
             # datetime attribute in json has string type, convert back
             dt_begin = timeutils.parse_isotime(ob['begin_at'])
             dt_end = timeutils.parse_isotime(ob['end_at'])
-            del ob['begin_at']
-            del ob['end_at']
-            actual = vm.AuditLog(begin_at=dt_begin, end_at=dt_end, **ob)
-            self.assertEqual(expect, actual)
+            ob['begin_at'] = dt_begin
+            ob['end_at'] = dt_end
+            fields = ['id', 'user_id', 'tenant_id', 'rid', 'path', 'method',
+                      'status_code', 'begin_at', 'end_at', 'content']
+            for k in fields:
+                self.assertEqual(getattr(expect, k), ob[k])
 
     def _verify_paginator(self, expect, json):
         actual = vm.Paginator(**json)

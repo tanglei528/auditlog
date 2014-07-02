@@ -31,6 +31,17 @@ class TestAuditLog(unittest.TestCase):
         self.assertFalse(l1 is None)
         self.assertFalse(l1 == wtypes.Unset)
 
+    def test_from_model(self):
+        one = test_data.one
+        expect = vm.AuditLog(id=one.id, user_id=one.user_id,
+                             tenant_id=one.tenant_id, rid=one.rid,
+                             path=one.path, method=one.method,
+                             status_code=one.status_code,
+                             begin_at=one.begin_at, end_at=one.end_at,
+                             content=one.content)
+        actual = vm.AuditLog.from_model(one)
+        self.assertEqual(expect, actual)
+
 
 class TestPaginator(unittest.TestCase):
 
