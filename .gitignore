@@ -2,7 +2,9 @@
 *.swp
 *.pyc
 build
-.converage
+.coverage
+cover
+.testrepository
 .tox
 .venv
 AUTHORS

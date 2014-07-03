@@ -37,6 +37,12 @@ To do code style check, run:
 
 tox -e pep8
 
+To analyse test code coverage, run:
+
+tox- e cover --develop
+
+Then open cover/index.html in your favorite browser.
+
 Debug source code
 ============
 

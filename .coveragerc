@@ -1,0 +1,8 @@
+[run]
+branch = True
+source = auditlog
+omit = auditlog/api/tests/*, auditlog/openstack/common/*
+
+[report]
+ignore-errors = True
+
