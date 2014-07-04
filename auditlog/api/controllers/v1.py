@@ -17,6 +17,7 @@ class ResourcesController(rest.RestController):
 
     @wsme_pecan.wsexpose([vm.Resource])
     def get_all(self):
+        """Return all the Resource."""
         return [vm.Resource.from_model(r)
                 for r in m.Resource.get_resource_list()]
 
@@ -27,6 +28,12 @@ class AuditLogsController(rest.RestController):
     @wsme_pecan.wsexpose(vm.AuditLogPage,
                          [vm.Query], int, str)
     def get_all(self, q=[], limit=-1, marker=None):
+        """Return audit logs which match filters
+
+        :param q: Filter rules for the data to be returned.
+        :param limit: Maximum number of logs to be returned.
+        :param marker: Log id after which logs to be returned.
+        """
         authed_user_id, authed_tenant_id =\
             acl.get_limited_to(pecan.request.headers)
         if authed_user_id is not None:
@@ -49,6 +56,10 @@ class AuditLogsController(rest.RestController):
 
     @wsme_pecan.wsexpose(vm.AuditLog, wtypes.text)
     def get_one(self, id):
+        """Return the audit log which has the given id
+
+        :param id: The id of the audit log to be return.
+        """
         log = pecan.request.storage_conn.get_auditlog_by_id(id)
         if log is None:
             pecan.abort(404)

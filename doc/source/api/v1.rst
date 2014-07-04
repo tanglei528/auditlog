@@ -1,0 +1,32 @@
+.. docbookrestapi
+
+===========
+V1 API 服务
+===========
+
+Resources
+=========
+
+.. rest-controller:: auditlog.api.controllers.v1:ResourcesController
+   :webprefix: /v1/resources
+
+.. autotype:: auditlog.api.model.view_models.Resource
+   :members:
+
+AuditLogs
+=========
+
+.. rest-controller:: auditlog.api.controllers.v1:AuditLogsController
+   :webprefix: /v1/auditlogs
+
+.. autotype:: auditlog.api.model.view_models.Query
+   :members:
+
+.. autotype:: auditlog.api.model.view_models.AuditLog
+   :members:
+
+.. autotype:: auditlog.api.model.view_models.AuditLogPage
+   :members:
+
+.. autotype:: auditlog.api.model.view_models.Paginator
+   :members:
