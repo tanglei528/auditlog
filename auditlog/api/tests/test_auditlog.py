@@ -45,7 +45,6 @@ class TestConnection(tests.IntegrationTest):
 
     def setUp(self):
         super(TestConnection, self).setUp()
-        import pdb; pdb.set_trace()
         self.url = '/v1/auditlogs'
 
     def _verify_audit_logs(self, expects, json):
@@ -83,7 +82,5 @@ class TestConnection(tests.IntegrationTest):
                   'op': 'eq',
                   'type': 'string'
                  }]
-        import pdb; pdb.set_trace()
-        #data = self.get_json(self.url, expect_errors, headers, query)
-        data = self.app.get(self.url, query[0], expect_errors=expect_errors, headers=headers)
-        
+        data = self.get_json(self.url, expect_errors, headers, query)
+

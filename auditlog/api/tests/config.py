@@ -14,7 +14,8 @@ app = {
     'errors': {
         '404': '/error/404',
         '__force_dict__': True
-    }
+    },
+    'enable_acl': False
 }
 
 # Custom Configurations must be in Python dictionary format::

@@ -154,7 +154,7 @@ class Connection(base.Connection):
                        'ge': '$ge', 'gt': '$gt'}
             op = op_list.get(item.get_op())
             value = item.value
-            self.query_constraint_str += {field: {op: value}} + ','
+            self.query_constraint_str += '{field: {%s: %s}},' % (op, value)
 
     def _get_index_from_marker(self, res, marker):
         for item in res:
