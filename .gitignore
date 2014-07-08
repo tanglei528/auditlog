@@ -11,3 +11,5 @@ AUTHORS
 ChangeLog
 dist
 *.egg
+doc/build
+doc/source/sourcecode

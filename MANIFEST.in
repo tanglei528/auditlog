@@ -3,3 +3,4 @@ include ChangeLog
 include README.rst
 recursive-include etc *.conf *.json
 include etc/auditlog-api
+include doc/build/man/auditlog.1
