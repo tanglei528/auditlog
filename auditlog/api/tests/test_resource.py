@@ -8,7 +8,7 @@ class TestResource(unittest.TestCase):
     def test_parse_url(self):
         r = resource.Resource.parse_url("/v2.0/networks")
         self.assertTrue(str(r.rid) == "1.2.1")
-        self.assertTrue(str(r.name) == "NetWorks")
+        self.assertTrue(str(r.name) == "Networks")
         r = resource.Resource.parse_url("/v2/{tenant}/servers/{serve}/action")
         self.assertEqual(str(r.rid), "2.2.7")
         self.assertTrue(str(r.name) == "Update server")
