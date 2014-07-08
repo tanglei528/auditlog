@@ -1,23 +1,17 @@
 import os
-import uuid
 import warnings
-
-import six
 
 import mox
 import pecan
 from pecan import testing
 
 from auditlog.api import hooks as cust_hooks
-from auditlog.api.tests import base as test_base
 from auditlog.openstack.common.fixture import config
 from auditlog.openstack.common.fixture import mockpatch as oslo_mock
 from auditlog.openstack.common import test
 from auditlog import service
-from auditlog import storage
+from auditlog import storage as base_storage
 from auditlog.storage import base
-
-__all__ = ['FunctionalTest']
 
 
 class IntegrationTest(test.BaseTestCase):
@@ -30,7 +24,7 @@ class IntegrationTest(test.BaseTestCase):
 
     def setUp(self):
         super(IntegrationTest, self).setUp()
-        self.database_connection=MongoDBFakeConnectionUrl()
+        self.database_connection = MongoDBFakeConnectionUrl()
         if self.database_connection is None:
             self.skipTest("No connection URL set")
 
@@ -42,8 +36,9 @@ class IntegrationTest(test.BaseTestCase):
         with warnings.catch_warnings():
             warnings.filterwarnings(
                 action='ignore',
-                message='.*you must provide a username and password.Authentication required*')
-            self.conn = storage.get_connection(self.CONF)
+                message='.*you must provide a username and password.\
+                        Authentication required*')
+            self.conn = base_storage.get_connection(self.CONF)
         self.conn.upgrade()
 
         service.prepare_service([])
@@ -55,7 +50,7 @@ class IntegrationTest(test.BaseTestCase):
         ))
 
     def tearDown(self):
-        #self.conn.clear()
+        self.conn.clear()
         self.conn = None
         pecan.set_config({}, overwrite=True)
         super(IntegrationTest, self).tearDown()

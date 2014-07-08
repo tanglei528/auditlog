@@ -1,5 +1,5 @@
 from auditlog.api import acl
-from auditlog.api import tests
+from auditlog import tests
 
 
 class TestAcl(tests.FunctionalTest):

@@ -50,7 +50,7 @@ class Connection(base.Connection):
         pass
 
     def create_auditlog(self, log):
-        self.colls.insert(log)
+        self.colls.insert(log.as_dict())
 
     def get_auditlog_by_id(self, id):
         result = self.colls.find({"id": uuid.UUID(id)})
@@ -133,6 +133,10 @@ class Connection(base.Connection):
     def validate_query(self, q):
         pass
 
+    def clear(self):
+        self.conn.drop_database(self.db)
+        self.conn.close()
+
     def _build_sort_instrution(self, order_by=[]):
         result = []
         if order_by == []:
@@ -154,7 +158,7 @@ class Connection(base.Connection):
                        'ge': '$ge', 'gt': '$gt'}
             op = op_list.get(item.get_op())
             value = item.value
-            self.query_constraint_str += '{field: {%s: %s}},' % (op, value)
+            self.query_constraint_str += '{%s: {%s: %s}},' % (field, op, value)
 
     def _get_index_from_marker(self, res, marker):
         for item in res:

@@ -55,6 +55,6 @@ class AuditMiddleware(base.Middleware):
 
     def _store_log(self, log):
         try:
-            self.connection.create_auditlog(log.as_dict())
+            self.connection.create_auditlog(log)
         except Exception as e:
             LOG.error("Store audit log error : %s", e)

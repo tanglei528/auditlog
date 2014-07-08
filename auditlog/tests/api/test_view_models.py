@@ -2,7 +2,7 @@ import unittest
 import wsme.types as wtypes
 
 from auditlog.api.model import view_models as vm
-from auditlog.api.tests import test_data
+from auditlog.tests.api import test_data
 
 
 class TestAuditLog(unittest.TestCase):

@@ -1,4 +1,4 @@
-import auditlog.api.tests as tests
+import auditlog.tests as tests
 
 
 # Server Specific Configurations

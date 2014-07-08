@@ -58,3 +58,7 @@ class Connection(object):
         :return: None
         :raise: InvalidQuery exception when having invalid query
         """
+
+    @abc.abstractmethod
+    def clear(self):
+        """Clear database and drop all data."""
