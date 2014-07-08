@@ -31,6 +31,10 @@ class Resource(ViewModel):
     name = wtypes.text
     "The name of the resource"
 
+    @classmethod
+    def sample(klass):
+        return klass(rid='1.2.1', name='Networks')
+
 
 class AuditLog(ViewModel):
     """The audit log record."""
@@ -64,6 +68,19 @@ class AuditLog(ViewModel):
 
     content = wtypes.text
     "The content of the request."
+
+    @classmethod
+    def sample(klass):
+        return klass(id='53b0c9c6ee4d3917ee827cae',
+                     user_id='e728072c3931483dad4494309d18fc9f',
+                     tenant_id='a3ab1d350f6f465e9f60766d5d78efc2',
+                     rid='1.2.1',
+                     path='/v2/networks',
+                     method='POST',
+                     status_code=200,
+                     begin_at=timeutils.utcnow(),
+                     end_at=timeutils.utcnow(),
+                     content='{network: {id: "53b0c9f2ee4d3917ee827caf"}}')
 
     def __eq__(self, other):
         if type(self) != type(other):
@@ -109,7 +126,7 @@ class Query(ViewModel):
     value = wtypes.text
     "The value to compare against the stored data"
 
-    type = wtypes.text
+    type = wtypes.Enum(str, *_supported_types)
     "The data type of value to compare against the stored data"
 
     def __repr__(self):
@@ -128,6 +145,13 @@ class Query(ViewModel):
                 self.value == other.value and self.type == other.type):
             return True
         return False
+
+    @classmethod
+    def sample(klass):
+        return klass(field='tenant_id',
+                     op='eq',
+                     value='a3ab1d350f6f465e9f60766d5d78efc2',
+                     type='string')
 
 
 class Paginator(ViewModel):
@@ -169,6 +193,14 @@ class Paginator(ViewModel):
 
         return True
 
+    @classmethod
+    def sample(klass):
+        return klass(total=11, size=5,
+                     count=3, current='a3ab1d350f6f465e9f60766d5d78efc2',
+                     first='a3ab1d350f6f465e9f60766d5d78efc2',
+                     previous=None, next='a3ab1d350f6f465e9f60766d5d78efc7',
+                     last='a3ab1d350f6f465e9f60766d5d78efcd')
+
 
 class AuditLogPage(ViewModel):
     """The paginated audit log result class."""
@@ -178,3 +210,8 @@ class AuditLogPage(ViewModel):
 
     paginator = Paginator
     "The paginator"
+
+    @classmethod
+    def sample(klass):
+        return klass(data=[AuditLog.sample()],
+                     paginator=Paginator.sample())

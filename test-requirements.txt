@@ -6,6 +6,12 @@ fixtures>=0.3.14
 hacking>=0.8.0,<0.9
 mock>=1.0
 mox>=0.5.3
+oslosphinx
+pytidylib6
+sphinx>=1.1.2,<1.2        
+sphinxcontrib-docbookrestapi
+sphinxcontrib-httpdomain
+sphinxcontrib-pecanwsme>=0.6
 testrepository>=0.0.18
 testtools>=0.9.34
 tox==1.6.1
