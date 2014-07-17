@@ -28,7 +28,7 @@ class Connection(base.Connection):
         self.colls = self.db.auditlog
         self.index = 0
         self.auditlog_list = []
-        self.query_constraint_str = ""
+        self.query_constraint_str = []
 
     def connect(self, url):
         connection_options = pymongo.uri_parser.parse_uri(url)
@@ -50,7 +50,7 @@ class Connection(base.Connection):
         pass
 
     def create_auditlog(self, log):
-        self.colls.insert(log)
+        self.colls.insert(log.as_dict())
 
     def get_auditlog_by_id(self, id):
         result = self.colls.find({"id": uuid.UUID(id)})
@@ -69,14 +69,20 @@ class Connection(base.Connection):
 
         sort_comm = self._build_sort_instrution(order_by)
         query_cons = self._build_query_constraint(q)
+        query_cons = None if query_cons == [] else query_cons
         if order_by == []:
-            results = self.colls.find(query_cons)
+            if query_cons is None:
+                results = self.colls.find()
+            else:
+                results = self.colls.find({'$and': query_cons})
         else:
-            results = self.colls.find(query_cons).sort(sort_comm)
+            if query_cons is None:
+                results = self.colls.find().sort(sort_comm)
+            else:
+                results = self.colls.find({'$and': query_cons}).sort(sort_comm)
         total = results.count()
         size = limit
         cursor = results.clone()
-
         if total == 0:
             return ([], None)
         if limit == -1:
@@ -86,8 +92,8 @@ class Connection(base.Connection):
         else:
             if total > 0:
                 if total <= size:
-                    page_count = 1
-                    first, previous, next, last = None, None, None, None
+                    auditlogs = self. _convert_results(results)
+                    return (auditlogs, None)
                 else:
                     first = str(cursor.skip(size - 1)[0].get('id'))
                     last = str(cursor.skip(total - 1)[0].get('id'))
@@ -98,7 +104,7 @@ class Connection(base.Connection):
                     if marker is None:
                         previous = None
                         next = str(cursor.skip(size - 1)[0].get('id'))
-                        final = results.limit(limit)
+                        final = results.limit(size)
                         paginator = mo.Paginator(limit, marker, total,
                                                  page_count, first, previous,
                                                  next, last)
@@ -112,16 +118,13 @@ class Connection(base.Connection):
                             previous = str(cursor.skip(idx_pre)[0].get('id'))
                         else:
                             previous = marker
-                        if total < idx_next:
+                        if total <= idx_next:
                             next = str(cursor.skip(total - 1)[0].get('id'))
                         else:
                             next = str(cursor.skip(idx_next)[0].get('id'))
                         begin_at = self._get_begintime(marker)
                         res = self.colls.find({"begin_at": {"$gt": begin_at}})
-                        if self.index >= 1:
-                            final = res[self.index: self.index + limit]
-                        else:
-                            final = res[:limit]
+                        final = res[:limit]
                         auditlogs = []
                         paginator = mo.Paginator(limit, marker, total,
                                                  page_count, first, previous,
@@ -132,6 +135,10 @@ class Connection(base.Connection):
 
     def validate_query(self, q):
         pass
+
+    def clear(self):
+        self.conn.drop_database(self.db)
+        self.conn.close()
 
     def _build_sort_instrution(self, order_by=[]):
         result = []
@@ -146,17 +153,23 @@ class Connection(base.Connection):
         return result
 
     def _build_query_constraint(self, q=None):
+        self.query_constraint_str = []
         if q is None:
-            return None
+            return []
         for item in q:
             field = item.field
-            op_list = {'lt': '$lt', 'le': '$le', 'eq': '$eq', 'ne': '$ne',
-                       'ge': '$ge', 'gt': '$gt'}
-            op = op_list.get(item.get_op())
+            op_list = {'lt': '$lt', 'lte': '$lte', 'ne': '$ne', 'ge': '$gte',
+                       'le': '$lte', 'gte': '$gte', 'gt': '$gt'}
             value = item.value
-            self.query_constraint_str += {field: {op: value}} + ','
+            if item.get_op() == 'eq':
+                self.query_constraint_str.append({field: value})
+            else:
+                op = op_list.get(item.get_op())
+                self.query_constraint_str.append({field: {op: value}})
+        return self.query_constraint_str
 
     def _get_index_from_marker(self, res, marker):
+        self.index = 0
         for item in res:
             self.index += 1
             if str(item["id"]) == marker:

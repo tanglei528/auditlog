@@ -1,8 +1,9 @@
-from auditlog.openstack.common.gettextutils import _  # noqa
 import logging
-from oslo.config import cfg
 import six.moves.urllib.parse as urlparse
 from stevedore import driver
+
+from auditlog.openstack.common.gettextutils import _  # noqa
+from oslo.config import cfg
 
 LOG = logging.getLogger(__name__)
 

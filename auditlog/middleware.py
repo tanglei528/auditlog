@@ -1,3 +1,4 @@
+import datetime
 import uuid
 
 from nova import wsgi as base
@@ -5,7 +6,6 @@ from oslo.config import cfg
 
 from auditlog.api.model import models
 from auditlog.openstack.common import log as logging
-from auditlog.openstack.common import timeutils
 from auditlog.storage import impl_mongodb
 
 LOG = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ class AuditMiddleware(base.Middleware):
                 rid = None
             method = req.method
             status_code = None
-            begin_at = timeutils.utcnow()
+            begin_at = self._format_time(datetime.datetime.now())
             end_at = None
             content = req.body
             self._log = models.AuditLog(id, user_id, tenant_id, rid, path,
@@ -48,13 +48,21 @@ class AuditMiddleware(base.Middleware):
     def process_response(self, response):
         if self._log is not None:
             self._log.status_code = response.status_int
-            self._log.end_at = timeutils.utcnow()
+            end_at = self._format_time(datetime.datetime.now())
+            self._log.end_at = end_at
             self._store_log(self._log)
             self._log = None
         return response
 
     def _store_log(self, log):
         try:
-            self.connection.create_auditlog(log.as_dict())
+            self.connection.create_auditlog(log)
         except Exception as e:
             LOG.error("Store audit log error : %s", e)
+
+    def _format_time(self, time):
+        formated_t = datetime.datetime.strftime(time,
+                                                '%Y-%m-%d %H:%M:%S')
+        end = datetime.datetime.strptime(formated_t,
+                                         '%Y-%m-%d %H:%M:%S')
+        return end

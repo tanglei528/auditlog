@@ -36,6 +36,7 @@ class AuditLogsController(rest.RestController):
         """
         authed_user_id, authed_tenant_id =\
             acl.get_limited_to(pecan.request.headers)
+
         if authed_user_id is not None:
             valid, id = self._validate_queries(q, 'user_id', authed_user_id)
             if not valid:

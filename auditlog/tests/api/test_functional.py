@@ -3,10 +3,10 @@ from mox import In
 
 from auditlog.api.model import models as m
 from auditlog.api.model import view_models as vm
-from auditlog.api import tests
-from auditlog.api.tests import test_data
 from auditlog.openstack.common.fixture import mockpatch as oslo_mock
 from auditlog.openstack.common import timeutils
+from auditlog import tests
+from auditlog.tests.api import test_data
 
 
 class TestRootController(tests.FunctionalTest):
