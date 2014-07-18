@@ -72,9 +72,10 @@ class ResourceId(str):
     segment means a level in hiararchy.
     """
 
-    def __init__(self, value):
-        super(ResourceId, self).__init__(value)
-        self.parts = [int(p) for p in value.split('.')]
+    def __new__(klass, value):
+        obj = str.__new__(klass, value)
+        obj.parts = [int(p) for p in value.split('.')]
+        return obj
 
     def __lt__(self, other):
         if id(self) == id(other) or str(self) == str(other):
