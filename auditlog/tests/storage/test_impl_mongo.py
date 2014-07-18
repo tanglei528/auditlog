@@ -56,4 +56,4 @@ class TestStorageMongoImplement(tests.IntegrationTest):
                   'op': 'eq',
                   'type': 'string'}]
         data = self.get_json(self.url, expect_errors, headers, query)
-        self._verify_audit_logs([test_data.one], data['data'])
+        self._verify_audit_logs(test_data.all, data['data'])
